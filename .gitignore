@@ -1,0 +1,10 @@
+/backup
+/CampusNavigation
+/x64
+/.git
+/.vs
+
+*.log
+*.sln
+*.vcxproj
+*.vcxproj.*
