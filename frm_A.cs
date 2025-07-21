@@ -23,7 +23,7 @@ namespace NBA
     public partial class frm_A : Form
     {
         // DeepSeek API Key 和 URL
-        private const string API_KEY = "sk-1bf12d9e4eed447682e24de7d220f6c0";
+        private const string API_KEY = "yourAPIkey";
         private const string API_URL = "https://api.deepseek.com/v1/chat/completions";
 
         // 在 frm_A 类中添加字段，保存历史对话
