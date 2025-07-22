@@ -192,7 +192,7 @@ namespace NBA
             };
 
             // 初始化顶部按钮集合
-            topMenuButtons = new List<Button> { players, teams, data_analysis, button4, button3, DS };
+            topMenuButtons = new List<Button> { players, teams, data_analysis, button4, button3, DS , button12 };
             foreach (var btn in topMenuButtons)
             {
                 btn.Click += TopMenuButton_Click;
@@ -342,7 +342,7 @@ namespace NBA
 
         private void button2_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 2;
+            tabControl_main.SelectedIndex = 3;
 
             if (dataGridViewPlayers.CurrentRow != null)
             {
@@ -709,6 +709,8 @@ namespace NBA
             else if (clickedBtn == button4) tabControl_main.SelectedIndex = 4;
             else if (clickedBtn == button3) tabControl_main.SelectedIndex = 5;
             else if (clickedBtn == DS) tabControl_main.SelectedIndex = 6;
+            else if (clickedBtn == button12) tabControl_main.SelectedIndex = 7; // 新增
+
         }
 
         //private void button5_Click(object sender, EventArgs e)
@@ -897,23 +899,31 @@ namespace NBA
             if (selectedFields.Contains("得分") && dataGridView_player_inf.DataSource is DataTable dt)
             {
                 List<float> scores = new();
+                List<DateTime> dates = new();
                 foreach (DataRow row in dt.Rows)
                 {
                     if (float.TryParse(row["得分"]?.ToString(), out float score))
                         scores.Add(score);
+
+                    string dateStr = row["日期"]?.ToString();
+                    if (DateTime.TryParseExact(dateStr, "MM/dd", null, System.Globalization.DateTimeStyles.None, out DateTime md))
+                    {
+                        int year = (md.Month > 6) ? 2024 : 2025;
+                        dates.Add(new DateTime(year, md.Month, md.Day));
+                    }
                 }
-                if (scores.Count > 3)
+                if (scores.Count > 3 && dates.Count > 0)
                 {
                     float[] predicted = PredictPlayerScores(scores, 3);
 
-                    // 在 chart1 上添加预测线
                     var series = chart1.Series["得分"];
-                    int lastIndex = series.Points.Count > 0 ? series.Points.Count : 0;
+                    DateTime lastDate = dates.Max();
                     for (int i = 0; i < predicted.Length; i++)
                     {
-                        var pt = series.Points.AddY(predicted[i]);
-                        series.Points[lastIndex + i].Color = Color.OrangeRed; // 预测点用不同颜色
-                        series.Points[lastIndex + i].MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Star5;
+                        DateTime predictDate = lastDate.AddDays(i + 1); // 依次往后推一天
+                        var pt = series.Points.AddXY(predictDate, predicted[i]);
+                        series.Points[series.Points.Count - 1].Color = Color.OrangeRed;
+                        series.Points[series.Points.Count - 1].MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Star5;
                     }
                 }
             }
@@ -1107,25 +1117,35 @@ namespace NBA
             public float Score { get; set; }
         }
         // 预测球员未来N场得分
+        // 替换原有 PredictPlayerScores 方法
         private float[] PredictPlayerScores(List<float> scores, int predictCount = 3)
         {
-            var mlContext = new MLContext();
-            var data = scores.Select((s, i) => new PlayerScoreData { GameIndex = i, Score = s }).ToList();
-            var trainData = mlContext.Data.LoadFromEnumerable(data);
+            if (scores == null || scores.Count < 3)
+                return Enumerable.Repeat(0f, predictCount).ToArray();
 
-            var pipeline = mlContext.Transforms.Concatenate("Features", "GameIndex")
-                .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Score", maximumNumberOfIterations: 100));
+            // 1. 计算历史均值和方差
+            float mean = scores.Average();
+            float std = (float)Math.Sqrt(scores.Select(s => (s - mean) * (s - mean)).Average());
 
-            var model = pipeline.Fit(trainData);
+            // 2. 计算线性趋势
+            float trend = (scores.Last() - scores.First()) / (scores.Count - 1);
 
-            float[] predictions = new float[predictCount];
+            // 3. 预测
+            float[] predicted = new float[predictCount];
+            Random rnd = new Random();
             for (int i = 0; i < predictCount; i++)
             {
-                var input = new PlayerScoreData { GameIndex = data.Count + i };
-                var pred = mlContext.Model.CreatePredictionEngine<PlayerScoreData, ScorePrediction>(model).Predict(input);
-                predictions[i] = pred.Score;
+                // 基于均值+趋势+周期扰动+噪声
+                float baseValue = mean + trend * (i + 1);
+                // 周期扰动（用sin模拟周期性起伏）
+                float cycle = (float)(Math.Sin((scores.Count + i) * Math.PI / 6) * std * 0.5);
+                // 随机噪声
+                float noise = (float)(rnd.NextDouble() * std * 0.3 - std * 0.15);
+                predicted[i] = baseValue + cycle + noise;
+                // 保证不为负
+                if (predicted[i] < 0) predicted[i] = 0;
             }
-            return predictions;
+            return predicted;
         }
         public static class NativeMethods
         {
@@ -1262,6 +1282,192 @@ namespace NBA
                 e.Handled = true;
                 e.SuppressKeyPress = true; // 防止回车换行
             }
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            tabControl_main.SelectedIndex = 7;
+        }
+        private async void button13_Click(object sender, EventArgs e)
+        {
+            if (dataGridViewPlayers.CurrentRow == null)
+            {
+                MessageBox.Show("请先在球员列表中选择一行！");
+                return;
+            }
+
+            // 1. 获取球员ID和姓名
+            string playerId = dataGridViewPlayers.CurrentRow.Cells["player_id"].Value?.ToString();
+            string playerName = dataGridViewPlayers.CurrentRow.Cells["player_name"].Value?.ToString();
+            if (string.IsNullOrEmpty(playerId) || string.IsNullOrEmpty(playerName))
+            {
+                MessageBox.Show("未能获取球员信息！");
+                return;
+            }
+
+            // 2. 获取球员历史得分数据
+            DataTable dt = DbHelper.GetPlayerTable(playerId);
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                MessageBox.Show("未找到该球员的历史数据！");
+                return;
+            }
+
+            List<float> scores = new();
+            foreach (DataRow row in dt.Rows)
+            {
+                if (float.TryParse(row["得分"]?.ToString(), out float score))
+                    scores.Add(score);
+            }
+
+            // 3. 预测下赛季15场比赛得分
+            int predictCount = 15;
+            float[] predicted = scores.Count > 3 ? PredictPlayerScores(scores, predictCount) : Array.Empty<float>();
+
+            // 4. 在chart2上显示预测结果（折线图）
+            chart2.Series.Clear();
+            chart2.ChartAreas.Clear();
+            ChartArea area = new ChartArea("MainArea");
+            chart2.ChartAreas.Add(area);
+
+            Series series = new Series("2025-2026赛季预测得分")
+            {
+                ChartType = SeriesChartType.Line,
+                Color = Color.OrangeRed,
+                BorderWidth = 2,
+                XValueType = ChartValueType.DateTime
+            };
+
+            // 生成15个比赛日期（假设从2025-10-01起每周一场）
+            DateTime startDate = new DateTime(2025, 10, 1);
+            for (int i = 0; i < predicted.Length; i++)
+            {
+                DateTime gameDate = startDate.AddDays(i * 7);
+                series.Points.AddXY(gameDate, predicted[i]);
+            }
+            chart2.Series.Add(series);
+            chart2.Legends.Clear();
+            chart2.Legends.Add(new Legend("Legend1"));
+            area.AxisX.LabelStyle.Format = "yyyy-MM-dd";
+            area.AxisX.IntervalAutoMode = IntervalAutoMode.VariableCount;
+            area.AxisX.MajorGrid.LineColor = Color.LightGray;
+
+            // 5. 向AI发送预测请求，显示到richTextBox5
+            string prompt = $"请预测{playerName}在2025-2026赛季的表现和成绩。";
+            richTextBox5.Text = "AI正在预测，请稍候...\n";
+            try
+            {
+                var messages = new List<Dictionary<string, string>>
+        {
+            new Dictionary<string, string> { { "role", "user" }, { "content", prompt } }
+        };
+                await AIHelper.GetAIResponseStreaming(messages, API_KEY, API_URL, richTextBox5);
+            }
+            catch (Exception ex)
+            {
+                richTextBox5.Text = $"错误: {ex.Message}";
+            }
+        }
+
+        private async void button14_Click(object sender, EventArgs e)
+        {
+            if (team_dataGridView.CurrentRow == null)
+            {
+                MessageBox.Show("请先选择一个队伍！");
+                return;
+            }
+
+            // 1. 获取队伍名称
+            string teamName = team_dataGridView.CurrentRow.Cells["球队"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(teamName))
+            {
+                MessageBox.Show("未能获取队伍名称！");
+                return;
+            }
+
+            // 2. 跳转到第8页
+            tabControl_main.SelectedIndex = 7;
+
+            // 3. 向AI发送“预测该队未来成绩，快速”
+            string prompt1 = $"预测{teamName}未来成绩，快速";
+            richTextBox5.Text = "AI正在预测，请稍候...\n";
+            try
+            {
+                var messages1 = new List<Dictionary<string, string>>
+        {
+            new Dictionary<string, string> { { "role", "user" }, { "content", prompt1 } }
+        };
+                await AIHelper.GetAIResponseStreaming(messages1, API_KEY, API_URL, richTextBox5);
+            }
+            catch (Exception ex)
+            {
+                richTextBox5.Text = $"错误: {ex.Message}";
+            }
+
+            // 4. 向AI请求未来10场得分预测
+            string prompt2 = $"请给出{teamName}未来10场比赛得分预测，返回10个数字，用逗号分隔";
+            string aiScoreResult = "";
+            try
+            {
+                var messages2 = new List<Dictionary<string, string>>
+        {
+            new Dictionary<string, string> { { "role", "user" }, { "content", prompt2 } }
+        };
+                //// 这里用 StringBuilder 临时接收AI返回
+                //var sb = new StringBuilder();
+                //await AIHelper.GetAIResponseStreaming(messages2, API_KEY, API_URL, sb);
+                //aiScoreResult = sb.ToString();
+                // 这里用临时 RichTextBox 接收AI返回
+                using (var tempBox = new RichTextBox())
+                {
+                    tempBox.CreateControl(); // 或 tempBox.Handle
+                    await AIHelper.GetAIResponseStreaming(messages2, API_KEY, API_URL, tempBox);
+                    aiScoreResult = tempBox.Text;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("AI得分预测失败：" + ex.Message);
+                return;
+            }
+
+            // 5. 解析AI返回的10个数字
+            var scoreList = new List<float>();
+            foreach (var part in aiScoreResult.Split(new[] { ',', '，', ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (float.TryParse(part.Trim(), out float val))
+                    scoreList.Add(val);
+            }
+            if (scoreList.Count < 2)
+            {
+                MessageBox.Show("AI返回的得分数据无法解析！");
+                return;
+            }
+
+            // 6. 绘制折线图
+            chart2.Series.Clear();
+            chart2.ChartAreas.Clear();
+            ChartArea area = new ChartArea("MainArea");
+            chart2.ChartAreas.Add(area);
+
+            Series series = new Series($"{teamName}未来10场得分预测，快速")
+            {
+                ChartType = SeriesChartType.Line,
+                Color = Color.DodgerBlue,
+                BorderWidth = 2,
+                XValueType = ChartValueType.Int32
+            };
+
+            for (int i = 0; i < scoreList.Count; i++)
+            {
+                series.Points.AddXY(i + 1, scoreList[i]);
+            }
+            chart2.Series.Add(series);
+            chart2.Legends.Clear();
+            chart2.Legends.Add(new Legend("Legend1"));
+            area.AxisX.Title = "未来比赛场次";
+            area.AxisY.Title = "得分";
+            area.AxisX.MajorGrid.LineColor = Color.LightGray;
         }
     }
 }

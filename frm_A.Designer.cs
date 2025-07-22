@@ -33,18 +33,22 @@
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             panel1 = new Panel();
+            button12 = new Button();
             DS = new Button();
             button3 = new Button();
             button4 = new Button();
             data_analysis = new Button();
-
             teams = new Button();
             players = new Button();
             tabControl_main = new TabControl();
             tabPage7 = new TabPage();
             axWindowsMediaPlayer1 = new AxWMPLib.AxWindowsMediaPlayer();
             tabPage1 = new TabPage();
+            button13 = new Button();
             pictureBox3 = new PictureBox();
             button2 = new Button();
             richTextBox2 = new RichTextBox();
@@ -54,6 +58,7 @@
             button1 = new Button();
             dataGridViewPlayers = new DataGridView();
             tabPage2 = new TabPage();
+            button14 = new Button();
             label3 = new Label();
             richTextBox4 = new RichTextBox();
             richTextBox3 = new RichTextBox();
@@ -90,6 +95,9 @@
             result_box = new RichTextBox();
             question_box = new TextBox();
             label2 = new Label();
+            tabPage8 = new TabPage();
+            richTextBox5 = new RichTextBox();
+            chart2 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             pictureBox2 = new PictureBox();
             timer1 = new System.Windows.Forms.Timer(components);
             panel1.SuspendLayout();
@@ -114,25 +122,14 @@
             tabPage5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView5).BeginInit();
             tabPage6.SuspendLayout();
+            tabPage8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)chart2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             SuspendLayout();
             // 
-            // richTextBox1
-            richTextBox1.BorderStyle = BorderStyle.None;
-
-            // richTextBox2
-            richTextBox2.BorderStyle = BorderStyle.None;
-
-            // richTextBox3
-            richTextBox3.BorderStyle = BorderStyle.None;
-
-            // richTextBox4
-            richTextBox4.BorderStyle = BorderStyle.None;
-
-            // result_box
-            result_box.BorderStyle = BorderStyle.None;
             // panel1
             // 
+            panel1.Controls.Add(button12);
             panel1.Controls.Add(DS);
             panel1.Controls.Add(button3);
             panel1.Controls.Add(button4);
@@ -141,12 +138,22 @@
             panel1.Controls.Add(players);
             panel1.Location = new Point(90, 2);
             panel1.Name = "panel1";
-            panel1.Size = new Size(913, 68);
+            panel1.Size = new Size(1081, 68);
             panel1.TabIndex = 3;
+            // 
+            // button12
+            // 
+            button12.Location = new Point(761, 0);
+            button12.Name = "button12";
+            button12.Size = new Size(153, 68);
+            button12.TabIndex = 9;
+            button12.Text = "智能预测";
+            button12.UseVisualStyleBackColor = true;
+            button12.Click += button12_Click;
             // 
             // DS
             // 
-            DS.Location = new Point(756, 0);
+            DS.Location = new Point(911, 0);
             DS.Name = "DS";
             DS.Size = new Size(152, 68);
             DS.TabIndex = 5;
@@ -215,6 +222,7 @@
             tabControl_main.Controls.Add(tabPage4);
             tabControl_main.Controls.Add(tabPage5);
             tabControl_main.Controls.Add(tabPage6);
+            tabControl_main.Controls.Add(tabPage8);
             tabControl_main.ItemSize = new Size(0, 25);
             tabControl_main.Location = new Point(0, 72);
             tabControl_main.Multiline = true;
@@ -245,6 +253,7 @@
             // 
             // tabPage1
             // 
+            tabPage1.Controls.Add(button13);
             tabPage1.Controls.Add(pictureBox3);
             tabPage1.Controls.Add(button2);
             tabPage1.Controls.Add(richTextBox2);
@@ -261,6 +270,16 @@
             tabPage1.Text = "2";
             tabPage1.UseVisualStyleBackColor = true;
             // 
+            // button13
+            // 
+            button13.Location = new Point(1094, 296);
+            button13.Name = "button13";
+            button13.Size = new Size(125, 29);
+            button13.TabIndex = 9;
+            button13.Text = "预测未来成绩";
+            button13.UseVisualStyleBackColor = true;
+            button13.Click += button13_Click;
+            // 
             // pictureBox3
             // 
             pictureBox3.Location = new Point(1006, 16);
@@ -272,7 +291,7 @@
             // 
             // button2
             // 
-            button2.Location = new Point(1099, 294);
+            button2.Location = new Point(923, 296);
             button2.Name = "button2";
             button2.Size = new Size(132, 29);
             button2.TabIndex = 7;
@@ -282,6 +301,7 @@
             // 
             // richTextBox2
             // 
+            richTextBox2.BorderStyle = BorderStyle.None;
             richTextBox2.Location = new Point(424, 348);
             richTextBox2.Name = "richTextBox2";
             richTextBox2.Size = new Size(856, 287);
@@ -300,6 +320,7 @@
             // 
             // richTextBox1
             // 
+            richTextBox1.BorderStyle = BorderStyle.None;
             richTextBox1.Location = new Point(575, 89);
             richTextBox1.Name = "richTextBox1";
             richTextBox1.Size = new Size(246, 216);
@@ -317,7 +338,7 @@
             // 
             // button1
             // 
-            button1.Location = new Point(925, 294);
+            button1.Location = new Point(923, 261);
             button1.Name = "button1";
             button1.Size = new Size(118, 29);
             button1.TabIndex = 2;
@@ -339,6 +360,7 @@
             // 
             // tabPage2
             // 
+            tabPage2.Controls.Add(button14);
             tabPage2.Controls.Add(label3);
             tabPage2.Controls.Add(richTextBox4);
             tabPage2.Controls.Add(richTextBox3);
@@ -353,6 +375,16 @@
             tabPage2.Text = "3";
             tabPage2.UseVisualStyleBackColor = true;
             // 
+            // button14
+            // 
+            button14.Location = new Point(6, 82);
+            button14.Name = "button14";
+            button14.Size = new Size(118, 29);
+            button14.TabIndex = 6;
+            button14.Text = "预测未来成绩";
+            button14.UseVisualStyleBackColor = true;
+            button14.Click += button14_Click;
+            // 
             // label3
             // 
             label3.AutoSize = true;
@@ -364,6 +396,7 @@
             // 
             // richTextBox4
             // 
+            richTextBox4.BorderStyle = BorderStyle.None;
             richTextBox4.Location = new Point(641, 28);
             richTextBox4.Name = "richTextBox4";
             richTextBox4.Size = new Size(489, 191);
@@ -372,6 +405,7 @@
             // 
             // richTextBox3
             // 
+            richTextBox3.BorderStyle = BorderStyle.None;
             richTextBox3.Location = new Point(305, 28);
             richTextBox3.Name = "richTextBox3";
             richTextBox3.Size = new Size(330, 211);
@@ -703,6 +737,7 @@
             // 
             // result_box
             // 
+            result_box.BorderStyle = BorderStyle.None;
             result_box.Location = new Point(173, 125);
             result_box.Name = "result_box";
             result_box.Size = new Size(621, 282);
@@ -729,6 +764,41 @@
             label2.Size = new Size(156, 37);
             label2.TabIndex = 0;
             label2.Text = "DeepSeek";
+            // 
+            // tabPage8
+            // 
+            tabPage8.Controls.Add(richTextBox5);
+            tabPage8.Controls.Add(chart2);
+            tabPage8.Location = new Point(4, 4);
+            tabPage8.Name = "tabPage8";
+            tabPage8.Size = new Size(1427, 705);
+            tabPage8.TabIndex = 7;
+            tabPage8.Text = "8";
+            tabPage8.UseVisualStyleBackColor = true;
+            // 
+            // richTextBox5
+            // 
+            richTextBox5.Location = new Point(52, 334);
+            richTextBox5.Name = "richTextBox5";
+            richTextBox5.Size = new Size(782, 297);
+            richTextBox5.TabIndex = 1;
+            richTextBox5.Text = "";
+            // 
+            // chart2
+            // 
+            chartArea2.Name = "ChartArea1";
+            chart2.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend1";
+            chart2.Legends.Add(legend2);
+            chart2.Location = new Point(298, -4);
+            chart2.Name = "chart2";
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            chart2.Series.Add(series2);
+            chart2.Size = new Size(884, 288);
+            chart2.TabIndex = 0;
+            chart2.Text = "chart2";
             // 
             // pictureBox2
             // 
@@ -782,6 +852,8 @@
             ((System.ComponentModel.ISupportInitialize)dataGridView5).EndInit();
             tabPage6.ResumeLayout(false);
             tabPage6.PerformLayout();
+            tabPage8.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)chart2).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ResumeLayout(false);
         }
@@ -845,5 +917,11 @@
         private AxWMPLib.AxWindowsMediaPlayer axWindowsMediaPlayer1;
         private PictureBox pictureBox3;
         private ComboBox comboBox3;
+        private Button button12;
+        private TabPage tabPage8;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chart2;
+        private Button button13;
+        private RichTextBox richTextBox5;
+        private Button button14;
     }
 }
