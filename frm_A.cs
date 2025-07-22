@@ -32,6 +32,10 @@ namespace NBA
         // 在 frm_A 类中添加字段，保存顶部按钮集合
         private List<Button> topMenuButtons;
 
+        // 在类中添加一个变量，记录高亮状态
+        private enum RankingMode { Player, Team }
+        private RankingMode currentRankingMode = RankingMode.Player;
+
         public frm_A()
         {
             InitializeComponent();
@@ -86,8 +90,21 @@ namespace NBA
 
         private void teams_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 1; // tabPage2
+            tabControl_main.SelectedIndex = 1;
+            // 使用配置文件中的连接字符串
+            string connectionString = ConfigurationManager.ConnectionStrings["SecondConnection"].ConnectionString;
+            string query = "SELECT * FROM [dbo].[TeamStats] ORDER BY [得分] DESC";
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
+                DataTable dt = new DataTable();
+                adapter.Fill(dt);
+                team_dataGridView.DataSource = dt;
+                team_dataGridView.RowHeadersVisible = false; // 关键代码，隐藏行头
+            }
         }
+
 
         private void data_analysis_Click(object sender, EventArgs e)
         {
@@ -102,7 +119,41 @@ namespace NBA
         private void button3_Click(object sender, EventArgs e)
         {
             tabControl_main.SelectedIndex = 4; // tabPage5
+            string connStr = ConfigurationManager.ConnectionStrings["NBAScheduleConnection"].ConnectionString;
+            string sql = "SELECT * FROM [dbo].[Schedule]";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, conn);
+                    DataTable dt = new DataTable();
+                    adapter.Fill(dt);
+                    dataGridView5.DataSource = dt;
+                    dataGridView5.RowHeadersVisible = false;
+
+                    
+                    if (dataGridView5.Columns.Contains("Year"))
+                    {
+                        dataGridView5.Columns["Year"].DisplayIndex = 0;
+                        dataGridView5.Columns["Year"].Width = 50;
+                    }
+                    // 其他列宽度设置为较宽
+                    foreach (DataGridViewColumn col in dataGridView5.Columns)
+                    {
+                        if (col.Name != "Year")
+                        {
+                            col.Width = 139;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("数据库操作失败：" + ex.Message);
+            }
         }
+        
 
         private void frm_main_Load(object sender, EventArgs e)
         {
@@ -227,10 +278,6 @@ namespace NBA
             }
         }
 
-        // 删除原有 GetAIResponseStreaming 方法
-        // ...existing code...
-
-        // 可选：加个“清空对话”按钮，清空 chatHistory 和 result_box
         private void clearChat_Click(object sender, EventArgs e)
         {
             chatHistory.Clear();
@@ -369,7 +416,7 @@ namespace NBA
                     string prompt3 = $"请快速简要介绍篮球运动员{playerName}的主要成就、成长背景和社会影响。";
                     if (richTextBox2 != null)
                     {
-                        richTextBox2.Text = "正在思考，请稍候...\n";
+                        richTextBox2.Text = "正在查找，请稍候...\n";
                         try
                         {
                             // 第一次提问
@@ -555,6 +602,171 @@ namespace NBA
             else if (clickedBtn == button4) tabControl_main.SelectedIndex = 3;
             else if (clickedBtn == button3) tabControl_main.SelectedIndex = 4;
             else if (clickedBtn == DS) tabControl_main.SelectedIndex = 5;
+        }
+
+        //private void button5_Click(object sender, EventArgs e)
+        private async void button5_Click(object sender, EventArgs e)
+        {
+            if (team_dataGridView.CurrentRow == null)
+            {
+                MessageBox.Show("请先选择一个队伍！");
+                return;
+            }
+
+            // 获取队伍名称（假设列名为"球队"，如有不同请修改）
+            string teamName = team_dataGridView.CurrentRow.Cells["球队"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(teamName))
+            {
+                MessageBox.Show("未能获取队伍名称！");
+                return;
+            }
+            
+            // 获取队伍图片并显示到 pictureBox1
+            string connStr = ConfigurationManager.ConnectionStrings["SecondConnection"].ConnectionString;
+            string sqlPhoto = "SELECT [photo] FROM [TeamStats] WHERE [球队] = @teamName";
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                SqlCommand cmd = new SqlCommand(sqlPhoto, conn);
+                cmd.Parameters.AddWithValue("@teamName", teamName);
+                conn.Open();
+                var photoObj = cmd.ExecuteScalar();
+                if (photoObj != DBNull.Value && photoObj != null)
+                {
+                    byte[] imgBytes = (byte[])photoObj;
+                    using (var ms = new MemoryStream(imgBytes))
+                    {
+                        pictureBox1.Image = Image.FromStream(ms);
+                    }
+                }
+                else
+                {
+                    pictureBox1.Image = null;
+                }
+            }
+            // 构造问题
+            string prompt1 = $"快速介绍{teamName}队伍的阵容";
+            string prompt2 = $"快速介绍{teamName}队详细情况（不用介绍阵容）";
+
+            // 显示等待提示
+            richTextBox3.Text = "正在查找，请稍候...\n";
+            richTextBox4.Text = "正在查找，请稍候...\n";
+
+            try
+            {
+                // 准备两个请求的参数
+                var messages1 = new List<Dictionary<string, string>>
+                {
+                    new Dictionary<string, string> { { "role", "user" }, { "content", prompt1 } }
+                };
+
+                var messages2 = new List<Dictionary<string, string>>
+                {
+                    new Dictionary<string, string> { { "role", "user" }, { "content", prompt2 } }
+                };
+
+                // 并行发送两个请求
+                var task1 = AIHelper.GetAIResponseStreaming(messages1, API_KEY, API_URL, richTextBox3);
+                var task2 = AIHelper.GetAIResponseStreaming(messages2, API_KEY, API_URL, richTextBox4);
+
+                // 等待两个任务都完成
+                await Task.WhenAll(task1, task2);
+            }
+            catch (Exception ex)
+            {
+                richTextBox3.Text = $"错误: {ex.Message}";
+                richTextBox4.Text = $"错误: {ex.Message}";
+            }
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        // 通用排行榜查询方法
+        private void ShowRanking(string connName, string tableName, string nameColumn, string valueColumn, DataGridView dgv)
+        {
+            string connStr = ConfigurationManager.ConnectionStrings[connName].ConnectionString;
+            string sql = $"SELECT [{nameColumn}], [{valueColumn}] FROM [{tableName}] ORDER BY [{valueColumn}] DESC";
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, conn);
+                    DataTable dt = new DataTable();
+                    adapter.Fill(dt);
+                    // 添加序号列
+                    DataColumn col = new DataColumn("排名", typeof(int));
+                    dt.Columns.Add(col);
+                    // 将序号列移到第一列
+                    dt.Columns["排名"].SetOrdinal(0);
+
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        dt.Rows[i]["排名"] = i + 1;
+                    }
+                    dgv.AutoGenerateColumns = true;
+                    dgv.DataSource = null;
+                    dgv.Columns.Clear();
+                    dgv.DataSource = dt;
+                    dgv.RowHeadersVisible = false;
+                    dgv.Columns["排名"].Width = 40;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("数据库操作失败：" + ex.Message);
+            }
+        }
+
+
+
+        // button6：球员榜单
+        private void button6_Click(object sender, EventArgs e)
+        {
+            button6.BackColor = Color.DodgerBlue;
+            button6.ForeColor = Color.White;
+            button7.BackColor = SystemColors.Control;
+            button7.ForeColor = Color.Black;
+            currentRankingMode = RankingMode.Player;
+
+            ShowRanking("DefaultConnection", "player_mapping", "player_name", "得分", dataGridView1);
+            ShowRanking("DefaultConnection", "player_mapping", "player_name", "投篮命中率", dataGridView3);
+            ShowRanking("DefaultConnection", "player_mapping", "player_name", "三分命中率", dataGridView2);
+        }
+
+        // button7：球队榜单
+        private void button7_Click(object sender, EventArgs e)
+        {
+            button7.BackColor = Color.DodgerBlue;
+            button7.ForeColor = Color.White;
+            button6.BackColor = SystemColors.Control;
+            button6.ForeColor = Color.Black;
+            currentRankingMode = RankingMode.Team;
+
+            ShowRanking("SecondConnection", "TeamStats", "球队", "得分", dataGridView1);
+            ShowRanking("SecondConnection", "TeamStats", "球队", "投篮命中率", dataGridView3);
+            ShowRanking("SecondConnection", "TeamStats", "球队", "三分命中率", dataGridView2);
+        }
+
+        // button8：自定义字段榜单
+        private void button8_Click(object sender, EventArgs e)
+        {
+            string selectedColumn = comboBox1.SelectedItem?.ToString();
+            if (string.IsNullOrWhiteSpace(selectedColumn))
+            {
+                MessageBox.Show("请选择排序字段！");
+                return;
+            }
+
+            if (currentRankingMode == RankingMode.Player)
+            {
+                ShowRanking("DefaultConnection", "player_mapping", "player_name", selectedColumn, dataGridView4);
+            }
+            else // RankingMode.Team
+            {
+                ShowRanking("SecondConnection", "TeamStats", "球队", selectedColumn, dataGridView4);
+            }
         }
     }
 }

@@ -39,6 +39,8 @@ namespace NBA.Helpers
                     "application/json"
                 );
 
+                bool isFirstToken = true;
+                
                 using (var response = await client.PostAsync(apiUrl, content))
                 using (var stream = await response.Content.ReadAsStreamAsync())
                 using (var reader = new StreamReader(stream))
@@ -47,7 +49,6 @@ namespace NBA.Helpers
                     {
                         var line = await reader.ReadLineAsync();
                         if (string.IsNullOrWhiteSpace(line)) continue;
-
 
                         if (line.StartsWith("data: "))
                         {
@@ -62,6 +63,32 @@ namespace NBA.Helpers
                                 string displayToken = token.Replace("#", " ").Replace("*", " ");
                                 outputBox.Invoke((MethodInvoker)delegate
                                 {
+                                    // 第一个token到达时，如果最后一行包含"正在思考"或"正在查找"，则删除最后一行
+                                    if (isFirstToken)
+                                    {
+                                        string text = outputBox.Text;
+                                        // 使用Contains更宽松地匹配各种可能的提示文本
+                                        if (text.Contains("正在思考，请稍候") || 
+                                            text.Contains("AI正在思考，请稍候") || 
+                                            text.Contains("正在查找，请稍候"))
+                                        {
+                                            // 找到最后一个"正在"的位置作为剪切点
+                                            int lastLineStart = Math.Max(
+                                                Math.Max(
+                                                    text.LastIndexOf("正在思考"),
+                                                    text.LastIndexOf("AI正在思考")
+                                                ),
+                                                text.LastIndexOf("正在查找")
+                                            );
+                                            if (text.Contains("AI正在思考，请稍候")) { lastLineStart -= 2; }
+                                            if (lastLineStart >= 0)
+                                            {
+                                                // 删除从lastLineStart到末尾的文本
+                                                outputBox.Text = text.Substring(0, lastLineStart);
+                                            }
+                                        }
+                                        isFirstToken = false;
+                                    }
                                     outputBox.AppendText(displayToken);
                                 });
                                 await Task.Delay(20);
