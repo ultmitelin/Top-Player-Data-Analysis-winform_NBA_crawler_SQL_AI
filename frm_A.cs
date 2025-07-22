@@ -17,15 +17,16 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using NBA.Helpers;
 using System.Windows.Forms.DataVisualization.Charting;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 
 namespace NBA
 {
     public partial class frm_A : Form
     {
         // DeepSeek API Key 和 URL
-        private const string API_KEY = "yourAPIkey";
-        private const string API_URL = "https://api.deepseek.com/v1/chat/completions";
-
+        private static readonly string API_KEY = ConfigurationManager.AppSettings["DeepSeekApiKey"];
+        private static readonly string API_URL = ConfigurationManager.AppSettings["DeepSeekApiUrl"];
         // 在 frm_A 类中添加字段，保存历史对话
         private List<Dictionary<string, string>> chatHistory = new();
 
@@ -35,6 +36,11 @@ namespace NBA
         // 在类中添加一个变量，记录高亮状态
         private enum RankingMode { Player, Team }
         private RankingMode currentRankingMode = RankingMode.Player;
+
+        // 在 frm_A 类中添加字段
+        private List<Image> pictureList;
+        private System.Windows.Forms.Timer pictureTimer;
+        private Random rand = new Random();
 
         public frm_A()
         {
@@ -65,10 +71,13 @@ namespace NBA
             // player_panel
 
         }
-
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            tabControl_main.SelectedIndex = 0;
+        }
         private void players_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 0; // 切换到players页
+            tabControl_main.SelectedIndex = 1; // 切换到players页
 
             // 使用 DbHelper 获取数据
             DataTable dt = DbHelper.GetPlayerMapping();
@@ -86,11 +95,14 @@ namespace NBA
                 dataGridViewPlayers.Columns["photo"].HeaderText = "headshot";
             }
             dataGridViewPlayers.RowHeadersVisible = false;
+
+            // 填充球员名称到 checkedListBox2
+            FillPlayerNamesToCheckedListBox2();
         }
 
         private void teams_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 1;
+            tabControl_main.SelectedIndex = 2;
             // 使用配置文件中的连接字符串
             string connectionString = ConfigurationManager.ConnectionStrings["SecondConnection"].ConnectionString;
             string query = "SELECT * FROM [dbo].[TeamStats] ORDER BY [得分] DESC";
@@ -103,22 +115,23 @@ namespace NBA
                 team_dataGridView.DataSource = dt;
                 team_dataGridView.RowHeadersVisible = false; // 关键代码，隐藏行头
             }
+            FillComboBox2WithTeams();
         }
 
 
         private void data_analysis_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 2; // tabPage3
+            tabControl_main.SelectedIndex = 3; // tabPage3
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 3; // tabPage4
+            tabControl_main.SelectedIndex = 4; // tabPage4
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 4; // tabPage5
+            tabControl_main.SelectedIndex = 5; // tabPage5
             string connStr = ConfigurationManager.ConnectionStrings["NBAScheduleConnection"].ConnectionString;
             string sql = "SELECT * FROM [dbo].[Schedule]";
 
@@ -129,10 +142,11 @@ namespace NBA
                     SqlDataAdapter adapter = new SqlDataAdapter(sql, conn);
                     DataTable dt = new DataTable();
                     adapter.Fill(dt);
-                    dataGridView5.DataSource = dt;
+                    scheduleTable = dt;
+                    dataGridView5.DataSource = scheduleTable;
                     dataGridView5.RowHeadersVisible = false;
 
-                    
+
                     if (dataGridView5.Columns.Contains("Year"))
                     {
                         dataGridView5.Columns["Year"].DisplayIndex = 0;
@@ -153,7 +167,7 @@ namespace NBA
                 MessageBox.Show("数据库操作失败：" + ex.Message);
             }
         }
-        
+
 
         private void frm_main_Load(object sender, EventArgs e)
         {
@@ -183,6 +197,48 @@ namespace NBA
             {
                 btn.Click += TopMenuButton_Click;
             }
+
+            // 填充球员名称到 checkedListBox2
+            FillPlayerNamesToCheckedListBox2();
+
+            // 应用运动风主题
+            ApplySportyTheme();
+
+            // 初始化图片列表（资源名与资源管理器一致）
+            pictureList = new List<Image>
+            {
+                Properties.Resources.a1,
+                Properties.Resources.a2,
+                Properties.Resources.a3,
+                Properties.Resources.a4,
+                Properties.Resources.a5,
+                Properties.Resources.a6
+                // ...可继续添加
+            };
+
+            // 初始化Timer
+            pictureTimer = new System.Windows.Forms.Timer();
+            pictureTimer.Interval = 2000; // 切换间隔，单位毫秒
+            pictureTimer.Tick += PictureTimer_Tick;
+            pictureTimer.Start();
+
+            // 设置无边框和无控制栏
+            axWindowsMediaPlayer1.uiMode = "none";
+            //axWindowsMediaPlayer1.BorderStyle = 0;
+            // 设置循环播放
+            axWindowsMediaPlayer1.settings.setMode("loop", true);
+
+            // 播放本地视频
+            //axWindowsMediaPlayer1.URL = @"../../../nba图片/NBA.mp4";
+            // 推荐：基于程序启动目录的绝对路径
+            string videoPath = Path.Combine(Application.StartupPath, @"..\..\..\nba图片\NBA.mp4");
+            axWindowsMediaPlayer1.URL = Path.GetFullPath(videoPath);
+            axWindowsMediaPlayer1.Ctlcontrols.play();
+
+            // 或播放项目内资源（确保文件已复制到输出目录）
+            // axWindowsMediaPlayer1.URL = Application.StartupPath + @"\Resources\yourvideo.mp4";
+            // axWindowsMediaPlayer1.Ctlcontrols.play();
+
         }
 
         private void player_panel_Paint(object sender, PaintEventArgs e)
@@ -235,7 +291,7 @@ namespace NBA
 
         private void DS_Click(object sender, EventArgs e)
         {
-            tabControl_main.SelectedIndex = 5; // 切换到第6个tab页（索引从0开始）
+            tabControl_main.SelectedIndex = 6; // 切换到第6个tab页（索引从0开始）
         }
 
         private void result_box_TextChanged(object sender, EventArgs e)
@@ -291,6 +347,9 @@ namespace NBA
             if (dataGridViewPlayers.CurrentRow != null)
             {
                 var playerId = dataGridViewPlayers.CurrentRow.Cells[0].Value.ToString();
+                // 获取球员名并显示到label5
+                var playerName = dataGridViewPlayers.CurrentRow.Cells["player_name"].Value?.ToString();
+                label5.Text = playerName ?? "";
 
                 // 1. 显示 player_{playerId} 表到 dataGridView_player_inf
                 dataGridView_player_inf.DataSource = DbHelper.GetPlayerTable(playerId);
@@ -336,9 +395,8 @@ namespace NBA
             {
                 MessageBox.Show("请先在球员列表中选择一行！");
             }
-            DrawLineChart("得分"); // 画“得分”折线图
-            DrawLineChart("得分");
-            DrawLineChart("助攻");
+
+            DrawLineChart("得分", "助攻", "命中率");
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -458,7 +516,7 @@ namespace NBA
             }
         }
 
-        private void DrawLineChart(string yField)
+        private void DrawLineChart(params string[] yFields)
         {
             chart1.Series.Clear();
             chart1.ChartAreas.Clear();
@@ -466,43 +524,74 @@ namespace NBA
             ChartArea area = new ChartArea("MainArea");
             chart1.ChartAreas.Add(area);
 
-            Series series = new Series(yField)
-            {
-                ChartType = SeriesChartType.FastLine, // 或 Spline
-                BorderWidth = 2,
-                XValueType = ChartValueType.DateTime
-            };
-
             var dt = dataGridView_player_inf.DataSource as DataTable;
             if (dt == null) return;
-
-            // 新建一个排序后的DataView
+            Color[] colors = new Color[]
+        {
+    Color.Blue,
+    Color.Red,
+    Color.Green,
+    Color.Orange,
+    Color.Purple,
+    Color.Brown,
+    Color.Teal,
+    Color.Magenta,
+    Color.Gold,
+    Color.DarkCyan
+        };
+            // 1. 先排序
             DataView dv = dt.DefaultView;
             dv.Sort = "日期 ASC";
             DataTable sortedDt = dv.ToTable();
 
-            foreach (DataRow row in sortedDt.Rows)
+            // 2. 用字典去重，保证每个日期只有一个点
+            for (int i = 0; i < yFields.Length; i++)
             {
-                string dateStr = row["日期"]?.ToString();
-                if (string.IsNullOrWhiteSpace(dateStr)) continue;
-
-                if (DateTime.TryParseExact(dateStr, "MM/dd", null, System.Globalization.DateTimeStyles.None, out DateTime md))
+                var yField = yFields[i];
+                Series series = new Series(yField)
                 {
-                    int year = (md.Month > 6) ? 2024 : 2025;
-                    DateTime fullDate = new DateTime(year, md.Month, md.Day);
+                    ChartType = SeriesChartType.FastLine,
+                    BorderWidth = 2,
+                    XValueType = ChartValueType.DateTime,
+                    Color = colors[i % colors.Length] // 每条线不同颜色
+                };
 
-                    if (double.TryParse(row[yField]?.ToString(), out double yValue) && yValue > 0)
+                var dateValueDict = new Dictionary<DateTime, double>();
+
+                foreach (DataRow row in sortedDt.Rows)
+                {
+                    string dateStr = row["日期"]?.ToString();
+                    if (string.IsNullOrWhiteSpace(dateStr)) continue;
+
+                    if (DateTime.TryParseExact(dateStr, "MM/dd", null, System.Globalization.DateTimeStyles.None, out DateTime md))
                     {
-                        series.Points.AddXY(fullDate, yValue);
+                        int year = (md.Month > 6) ? 2024 : 2025;
+                        DateTime fullDate = new DateTime(year, md.Month, md.Day);
+
+                        string valueStr = row[yField]?.ToString();
+                        if (string.IsNullOrWhiteSpace(valueStr)) continue;
+
+                        valueStr = valueStr.Replace("%", "");
+                        if (double.TryParse(valueStr, out double yValue))
+                        {
+                            // 只保留第一个或最后一个
+                            if (!dateValueDict.ContainsKey(fullDate))
+                                dateValueDict[fullDate] = yValue;
+                        }
                     }
                 }
+
+                // 3. 按日期顺序添加点
+                foreach (var kv in dateValueDict.OrderBy(kv => kv.Key))
+                {
+                    series.Points.AddXY(kv.Key, kv.Value);
+                }
+
+                chart1.Series.Add(series);
             }
 
-            chart1.Series.Add(series);
             chart1.Legends.Clear();
-            chart1.Legends.Add(new Legend("Legend"));
-
-            // 设置x轴格式
+            chart1.Legends.Add(new Legend("Legend1"));
             area.AxisX.LabelStyle.Format = "yyyy-MM-dd";
             area.AxisX.IntervalAutoMode = IntervalAutoMode.VariableCount;
             area.AxisX.MajorGrid.LineColor = Color.LightGray;
@@ -541,8 +630,19 @@ namespace NBA
             chart1.Series.Add(series1);
             chart1.Series.Add(series2);
 
+            //chart1.Legends.Clear();
+            //chart1.Legends.Add(new Legend());
             chart1.Legends.Clear();
-            chart1.Legends.Add(new Legend("Legend"));
+            Legend legend = new Legend("Legend1");
+            legend.Font = new Font("微软雅黑", 7F); // 更小字体
+            legend.IsDockedInsideChartArea = false;
+            legend.Position = new ElementPosition(70, 5, 28, 20); // 控制位置和大小（百分比）
+            legend.MaximumAutoSize = 15; // 最大宽度百分比
+            legend.ItemColumnSpacing = 1; // 项间距
+            legend.TableStyle = LegendTableStyle.Auto;
+            legend.LegendStyle = LegendStyle.Table; // 横向紧凑排列
+
+            chart1.Legends.Add(legend);
 
             area.AxisX.LabelStyle.Format = "yyyy-MM-dd";
             area.AxisX.IntervalAutoMode = IntervalAutoMode.VariableCount;
@@ -567,9 +667,16 @@ namespace NBA
                     int year = (md.Month > 6) ? 2024 : 2025;
                     DateTime fullDate = new DateTime(year, md.Month, md.Day);
 
-                    if (double.TryParse(row[yField]?.ToString(), out double yValue) && yValue > 0)
+                    string valueStr = row[yField]?.ToString();
+                    if (string.IsNullOrWhiteSpace(valueStr)) continue;
+
+                    // 处理百分号
+                    valueStr = valueStr.Replace("%", "");
+                    if (double.TryParse(valueStr, out double yValue))
                     {
-                        series.Points.AddXY(fullDate, yValue);
+                        // 如果原始数据是百分比，按实际需求决定是否除以100
+                        // series.Points.AddXY(fullDate, yValue / 100.0); // 如果想显示0-1区间
+                        series.Points.AddXY(fullDate, yValue); // 如果想显示0-100区间
                     }
                 }
             }
@@ -596,12 +703,12 @@ namespace NBA
             }
 
             // 可选：根据按钮切换页面
-            if (clickedBtn == players) tabControl_main.SelectedIndex = 0;
-            else if (clickedBtn == teams) tabControl_main.SelectedIndex = 1;
-            else if (clickedBtn == data_analysis) tabControl_main.SelectedIndex = 2;
-            else if (clickedBtn == button4) tabControl_main.SelectedIndex = 3;
-            else if (clickedBtn == button3) tabControl_main.SelectedIndex = 4;
-            else if (clickedBtn == DS) tabControl_main.SelectedIndex = 5;
+            if (clickedBtn == players) tabControl_main.SelectedIndex = 1;
+            else if (clickedBtn == teams) tabControl_main.SelectedIndex = 2;
+            else if (clickedBtn == data_analysis) tabControl_main.SelectedIndex = 3;
+            else if (clickedBtn == button4) tabControl_main.SelectedIndex = 4;
+            else if (clickedBtn == button3) tabControl_main.SelectedIndex = 5;
+            else if (clickedBtn == DS) tabControl_main.SelectedIndex = 6;
         }
 
         //private void button5_Click(object sender, EventArgs e)
@@ -620,7 +727,7 @@ namespace NBA
                 MessageBox.Show("未能获取队伍名称！");
                 return;
             }
-            
+
             // 获取队伍图片并显示到 pictureBox1
             string connStr = ConfigurationManager.ConnectionStrings["SecondConnection"].ConnectionString;
             string sqlPhoto = "SELECT [photo] FROM [TeamStats] WHERE [球队] = @teamName";
@@ -766,6 +873,394 @@ namespace NBA
             else // RankingMode.Team
             {
                 ShowRanking("SecondConnection", "TeamStats", "球队", selectedColumn, dataGridView4);
+            }
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            // 获取 checkedListBox1 当前选中的所有字段
+            var selectedFields = checkedListBox1.CheckedItems.Cast<string>().ToArray();
+            if (selectedFields.Length == 0)
+            {
+                MessageBox.Show("请选择要显示的字段！");
+                return;
+            }
+            // 获取当前球员历史得分
+            string playerName = null;
+            if (dataGridViewPlayers.CurrentRow != null)
+                playerName = dataGridViewPlayers.CurrentRow.Cells["player_name"].Value?.ToString();
+
+            label5.Text = playerName ?? "";
+            DrawLineChart(selectedFields);
+
+            // 预测得分（以“得分”字段为例）
+            if (selectedFields.Contains("得分") && dataGridView_player_inf.DataSource is DataTable dt)
+            {
+                List<float> scores = new();
+                foreach (DataRow row in dt.Rows)
+                {
+                    if (float.TryParse(row["得分"]?.ToString(), out float score))
+                        scores.Add(score);
+                }
+                if (scores.Count > 3)
+                {
+                    float[] predicted = PredictPlayerScores(scores, 3);
+
+                    // 在 chart1 上添加预测线
+                    var series = chart1.Series["得分"];
+                    int lastIndex = series.Points.Count > 0 ? series.Points.Count : 0;
+                    for (int i = 0; i < predicted.Length; i++)
+                    {
+                        var pt = series.Points.AddY(predicted[i]);
+                        series.Points[lastIndex + i].Color = Color.OrangeRed; // 预测点用不同颜色
+                        series.Points[lastIndex + i].MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Star5;
+                    }
+                }
+            }
+        }
+
+        // 1. 自动填充 checkedListBox2（球员名列表）
+        private void FillPlayerNamesToCheckedListBox2()
+        {
+            checkedListBox2.Items.Clear();
+            foreach (DataGridViewRow row in dataGridViewPlayers.Rows)
+            {
+                if (row.IsNewRow) continue;
+                var playerName = row.Cells["player_name"].Value?.ToString();
+                if (!string.IsNullOrEmpty(playerName))
+                    checkedListBox2.Items.Add(playerName);
+            }
+        }
+
+        // 4. 事件绑定（如未自动生成，需手动加上）
+        private void checkedListBox2_SelectedIndexChanged(object sender, EventArgs e) { }
+        private void button10_Click_ManualBind()
+        {
+            button10.Click += button10_Click;
+        }
+        // 在类中添加
+        private string RemoveEnglishName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return name;
+            int idx = name.IndexOf('（');
+            if (idx >= 0)
+                return name.Substring(0, idx).Trim();
+            return name.Trim();
+        }
+        // button10：多球员对比
+        private void button10_Click(object sender, EventArgs e)
+        {
+            var selectedFields = checkedListBox1.CheckedItems.Cast<string>().ToArray();
+            var selectedPlayers = checkedListBox2.CheckedItems.Cast<string>().ToArray();
+
+            if (selectedFields.Length == 0)
+            {
+                MessageBox.Show("请选择要显示的字段！");
+                return;
+            }
+            if (selectedPlayers.Length == 0)
+            {
+                MessageBox.Show("请选择要对比的球员！");
+                return;
+            }
+            // 设置label5，格式为A vs B vs C
+            label5.Text = string.Join(" vs ", selectedPlayers);
+
+            chart1.Series.Clear();
+            chart1.ChartAreas.Clear();
+            ChartArea area = new ChartArea("MainArea");
+            chart1.ChartAreas.Add(area);
+
+            // 不同球员不同颜色，不同字段不同线型
+            Color[] playerColors = new Color[]
+    {
+        Color.Blue, Color.Red, Color.Green, Color.Orange, Color.Purple,
+        Color.Brown, Color.Teal, Color.Magenta, Color.Gold, Color.DarkCyan
+    };
+            var dashStyles = new[]
+            {
+                System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid,
+                System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Dash,
+                System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Dot,
+                System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.DashDot,
+                System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.DashDotDot
+            };
+
+            int playerIdx = 0;
+            foreach (var playerName in selectedPlayers)
+            {
+                // 通过 player_name 查找 player_id
+                string playerId = null;
+                foreach (DataGridViewRow row in dataGridViewPlayers.Rows)
+                {
+                    if (row.IsNewRow) continue;
+                    if (row.Cells["player_name"].Value?.ToString() == playerName)
+                    {
+                        playerId = row.Cells["player_id"].Value?.ToString();
+                        break;
+                    }
+                }
+                if (string.IsNullOrEmpty(playerId)) continue;
+
+                // 获取该球员的数据表
+                DataTable dt = DbHelper.GetPlayerTable(playerId);
+                if (dt == null) continue;
+
+                for (int fieldIdx = 0; fieldIdx < selectedFields.Length; fieldIdx++)
+                {
+                    var yField = selectedFields[fieldIdx];
+                    string displayName = RemoveEnglishName(playerName);
+                    Color lineColor = playerColors[playerIdx % playerColors.Length];
+                    var dashStyle = dashStyles[fieldIdx % dashStyles.Length];
+
+                    Series series = new Series($"{displayName}-{yField}")
+                    {
+                        ChartType = SeriesChartType.FastLine,
+                        BorderWidth = 2,
+                        XValueType = ChartValueType.DateTime,
+                        Color = lineColor,
+                        BorderDashStyle = dashStyle
+                    };
+
+                    // 填充数据
+                    DataView dv = dt.DefaultView;
+                    dv.Sort = "日期 ASC";
+                    DataTable sortedDt = dv.ToTable();
+                    var dateValueDict = new Dictionary<DateTime, double>();
+                    foreach (DataRow row in sortedDt.Rows)
+                    {
+                        string dateStr = row["日期"]?.ToString();
+                        if (string.IsNullOrWhiteSpace(dateStr)) continue;
+                        if (DateTime.TryParseExact(dateStr, "MM/dd", null, System.Globalization.DateTimeStyles.None, out DateTime md))
+                        {
+                            int year = (md.Month > 6) ? 2024 : 2025;
+                            DateTime fullDate = new DateTime(year, md.Month, md.Day);
+                            string valueStr = row[yField]?.ToString();
+                            if (string.IsNullOrWhiteSpace(valueStr)) continue;
+                            valueStr = valueStr.Replace("%", "");
+                            if (double.TryParse(valueStr, out double yValue))
+                            {
+                                if (!dateValueDict.ContainsKey(fullDate))
+                                    dateValueDict[fullDate] = yValue;
+                            }
+                        }
+                    }
+                    foreach (var kv in dateValueDict.OrderBy(kv => kv.Key))
+                    {
+                        series.Points.AddXY(kv.Key, kv.Value);
+                    }
+                    chart1.Series.Add(series);
+                }
+                playerIdx++;
+            }
+
+            chart1.Legends.Clear();
+            chart1.Legends.Add(new Legend("Legend1"));
+            area.AxisX.LabelStyle.Format = "yyyy-MM-dd";
+            area.AxisX.IntervalAutoMode = IntervalAutoMode.VariableCount;
+            area.AxisX.MajorGrid.LineColor = Color.LightGray;
+        }
+
+        // 1. 填充comboBox2（建议在窗体加载或数据加载后调用）
+        private void FillComboBox2WithTeams()
+        {
+            comboBox2.Items.Clear();
+            HashSet<string> teamNames = new HashSet<string>();
+            foreach (DataGridViewRow row in team_dataGridView.Rows)
+            {
+                if (row.IsNewRow) continue;
+                var value = row.Cells["球队"].Value?.ToString();
+                if (!string.IsNullOrEmpty(value) && !teamNames.Contains(value))
+                {
+                    teamNames.Add(value);
+                    comboBox2.Items.Add(value);
+                }
+            }
+        }
+        private DataTable scheduleTable;
+        // 2. button11点击事件：模糊筛选赛程
+        private void button11_Click(object sender, EventArgs e)
+        {
+            string selectedTeam = comboBox2.Text.Trim();
+            if (string.IsNullOrEmpty(selectedTeam) || scheduleTable == null) return;
+
+            // 假设只有一个 "Teams" 列
+            string filter = $"Teams LIKE '%{selectedTeam}%'";
+            DataView dv = new DataView(scheduleTable);
+            dv.RowFilter = filter;
+            dataGridView5.DataSource = dv;
+        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            button11_Click(sender, e);
+        }
+
+        public class PlayerScoreData
+        {
+            public float GameIndex { get; set; }
+            public float Score { get; set; }
+        }
+
+        public class ScorePrediction
+        {
+            public float Score { get; set; }
+        }
+        // 预测球员未来N场得分
+        private float[] PredictPlayerScores(List<float> scores, int predictCount = 3)
+        {
+            var mlContext = new MLContext();
+            var data = scores.Select((s, i) => new PlayerScoreData { GameIndex = i, Score = s }).ToList();
+            var trainData = mlContext.Data.LoadFromEnumerable(data);
+
+            var pipeline = mlContext.Transforms.Concatenate("Features", "GameIndex")
+                .Append(mlContext.Regression.Trainers.Sdca(labelColumnName: "Score", maximumNumberOfIterations: 100));
+
+            var model = pipeline.Fit(trainData);
+
+            float[] predictions = new float[predictCount];
+            for (int i = 0; i < predictCount; i++)
+            {
+                var input = new PlayerScoreData { GameIndex = data.Count + i };
+                var pred = mlContext.Model.CreatePredictionEngine<PlayerScoreData, ScorePrediction>(model).Predict(input);
+                predictions[i] = pred.Score;
+            }
+            return predictions;
+        }
+        public static class NativeMethods
+        {
+            [System.Runtime.InteropServices.DllImport("gdi32.dll", SetLastError = true)]
+            public static extern IntPtr CreateRoundRectRgn(
+                int nLeftRect, int nTopRect, int nRightRect, int nBottomRect,
+                int nWidthEllipse, int nHeightEllipse);
+        }
+        // 运动风美化方法
+        private void ApplySportyTheme()
+        {
+            // panel1 背景色更亮
+            if (panel1 != null) panel1.BackColor = ColorTranslator.FromHtml("#182B4D"); // 运动蓝
+
+
+            // TabControl美化
+            tabControl_main.Appearance = TabAppearance.Normal;
+            tabControl_main.DrawMode = TabDrawMode.OwnerDrawFixed;
+            tabControl_main.ItemSize = new Size(120, 36);
+            tabControl_main.SizeMode = TabSizeMode.Fixed;
+            tabControl_main.DrawItem += (s, e) =>
+            {
+                var tab = tabControl_main.TabPages[e.Index];
+                var g = e.Graphics;
+                var rect = e.Bounds;
+                bool selected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+                Color backColor = selected ? ColorTranslator.FromHtml("#FF6F00") : ColorTranslator.FromHtml("#0D1333");
+                Color foreColor = Color.White;
+                using (SolidBrush b = new SolidBrush(backColor))
+                    g.FillRectangle(b, rect);
+                TextRenderer.DrawText(g, tab.Text, new Font("微软雅黑", 11, FontStyle.Bold), rect, foreColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            };
+            // 顶部按钮
+            foreach (TabPage page in tabControl_main.TabPages)
+            {
+                page.BackColor = Color.White;
+            }
+            foreach (var btn in topMenuButtons)
+            {
+                btn.Font = new Font("微软雅黑", 16, FontStyle.Bold);
+                btn.FlatStyle = FlatStyle.Flat;
+                btn.BackColor = ColorTranslator.FromHtml("#0D1333");
+                btn.ForeColor = Color.White;
+                btn.FlatAppearance.BorderSize = 0;
+                btn.Height = 60;
+                btn.Width = 160;
+                btn.Cursor = Cursors.Hand;
+
+                btn.MouseEnter += (s, e) =>
+                {
+                    ((Button)s).BackColor = ColorTranslator.FromHtml("#FF6F00");
+                };
+                btn.MouseLeave += (s, e) =>
+                {
+                    // 如果当前按钮是高亮（选中）状态，则不还原
+                    if (((Button)s).BackColor != Color.DodgerBlue)
+                        ((Button)s).BackColor = ColorTranslator.FromHtml("#0D1333");
+                };
+            }
+            // DataGridView美化
+            void BeautifyDGV(DataGridView dgv)
+            {
+                dgv.EnableHeadersVisualStyles = false;
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#FF6F00"); // 橙色表头
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                dgv.ColumnHeadersDefaultCellStyle.Font = new Font("微软雅黑", 10, FontStyle.Bold);
+                dgv.DefaultCellStyle.BackColor = ColorTranslator.FromHtml("#F5F8FF"); // 主体淡蓝色
+                dgv.DefaultCellStyle.ForeColor = ColorTranslator.FromHtml("#0D1333");
+                dgv.DefaultCellStyle.SelectionBackColor = ColorTranslator.FromHtml("#2979FF");
+                dgv.DefaultCellStyle.SelectionForeColor = Color.White;
+                dgv.RowTemplate.Height = 32;
+                dgv.GridColor = ColorTranslator.FromHtml("#E3EAF2"); // 更淡的分隔线
+                dgv.BorderStyle = BorderStyle.None;
+            }
+            BeautifyDGV(dataGridViewPlayers);
+            BeautifyDGV(team_dataGridView);
+            BeautifyDGV(dataGridView_player_inf);
+
+            // Chart美化
+            if (chart1 != null)
+            {
+                chart1.BackColor = Color.White;
+                chart1.BorderlineColor = ColorTranslator.FromHtml("#FF6F00");
+                chart1.BorderlineDashStyle = System.Windows.Forms.DataVisualization.Charting.ChartDashStyle.Solid;
+                chart1.BorderlineWidth = 2;
+                if (chart1.ChartAreas.Count > 0)
+                    chart1.ChartAreas[0].BackColor = ColorTranslator.FromHtml("#F5F5F5");
+                if (chart1.Legends.Count > 0)
+                {
+                    chart1.Legends[0].BackColor = Color.Transparent;
+                    chart1.Legends[0].Font = new Font("微软雅黑", 10, FontStyle.Bold);
+                }
+            }
+
+            // 主要Label字体
+            foreach (var ctrl in this.Controls)
+            {
+                if (ctrl is Label lbl)
+                {
+                    lbl.Font = new Font("微软雅黑", 12, FontStyle.Bold);
+                    lbl.ForeColor = ColorTranslator.FromHtml("#0D1333");
+                }
+            }
+        }
+
+        private void tabPage7_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void PictureTimer_Tick(object sender, EventArgs e)
+        {
+            if (pictureList != null && pictureList.Count > 0)
+            {
+                int idx = rand.Next(pictureList.Count);
+                pictureBox3.Image = pictureList[idx];
+            }
+        }
+
+        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox3.SelectedItem != null)
+            {
+                question_box.Text = comboBox3.SelectedItem.ToString();
+                question_box.ForeColor = Color.Black; // 可选：恢复正常字体颜色
+            }
+        }
+
+        private void question_box_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                send.PerformClick();
+                e.Handled = true;
+                e.SuppressKeyPress = true; // 防止回车换行
             }
         }
     }

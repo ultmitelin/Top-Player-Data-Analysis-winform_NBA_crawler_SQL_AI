@@ -3,7 +3,7 @@
 /x64
 /.git
 /.vs
-
+/.App.config
 *.log
 *.sln
 *.vcxproj

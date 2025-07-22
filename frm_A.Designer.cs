@@ -28,19 +28,24 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frm_A));
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            search_btn = new Button();
             panel1 = new Panel();
+            DS = new Button();
             button3 = new Button();
             button4 = new Button();
             data_analysis = new Button();
+
             teams = new Button();
             players = new Button();
             tabControl_main = new TabControl();
+            tabPage7 = new TabPage();
+            axWindowsMediaPlayer1 = new AxWMPLib.AxWindowsMediaPlayer();
             tabPage1 = new TabPage();
-            checkBox1 = new CheckBox();
+            pictureBox3 = new PictureBox();
             button2 = new Button();
             richTextBox2 = new RichTextBox();
             label1 = new Label();
@@ -56,6 +61,11 @@
             pictureBox1 = new PictureBox();
             team_dataGridView = new DataGridView();
             tabPage3 = new TabPage();
+            label5 = new Label();
+            button10 = new Button();
+            checkedListBox2 = new CheckedListBox();
+            checkedListBox1 = new CheckedListBox();
+            button9 = new Button();
             chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             dataGridView_player_inf = new DataGridView();
             tabPage4 = new TabPage();
@@ -71,16 +81,23 @@
             button7 = new Button();
             button6 = new Button();
             tabPage5 = new TabPage();
+            button11 = new Button();
+            comboBox2 = new ComboBox();
             dataGridView5 = new DataGridView();
             tabPage6 = new TabPage();
+            comboBox3 = new ComboBox();
             send = new Button();
             result_box = new RichTextBox();
             question_box = new TextBox();
             label2 = new Label();
-            DS = new Button();
+            pictureBox2 = new PictureBox();
+            timer1 = new System.Windows.Forms.Timer(components);
             panel1.SuspendLayout();
             tabControl_main.SuspendLayout();
+            tabPage7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)axWindowsMediaPlayer1).BeginInit();
             tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxPlayer).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).BeginInit();
             tabPage2.SuspendLayout();
@@ -97,32 +114,49 @@
             tabPage5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView5).BeginInit();
             tabPage6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             SuspendLayout();
             // 
-            // search_btn
-            // 
-            search_btn.Location = new Point(1234, 12);
-            search_btn.Name = "search_btn";
-            search_btn.Size = new Size(131, 65);
-            search_btn.TabIndex = 2;
-            search_btn.Text = "搜索";
-            search_btn.UseVisualStyleBackColor = true;
-            // 
+            // richTextBox1
+            richTextBox1.BorderStyle = BorderStyle.None;
+
+            // richTextBox2
+            richTextBox2.BorderStyle = BorderStyle.None;
+
+            // richTextBox3
+            richTextBox3.BorderStyle = BorderStyle.None;
+
+            // richTextBox4
+            richTextBox4.BorderStyle = BorderStyle.None;
+
+            // result_box
+            result_box.BorderStyle = BorderStyle.None;
             // panel1
             // 
+            panel1.Controls.Add(DS);
             panel1.Controls.Add(button3);
             panel1.Controls.Add(button4);
             panel1.Controls.Add(data_analysis);
             panel1.Controls.Add(teams);
             panel1.Controls.Add(players);
-            panel1.Location = new Point(0, -2);
+            panel1.Location = new Point(90, 2);
             panel1.Name = "panel1";
-            panel1.Size = new Size(876, 68);
+            panel1.Size = new Size(913, 68);
             panel1.TabIndex = 3;
+            // 
+            // DS
+            // 
+            DS.Location = new Point(756, 0);
+            DS.Name = "DS";
+            DS.Size = new Size(152, 68);
+            DS.TabIndex = 5;
+            DS.Text = "DeepSeek";
+            DS.UseVisualStyleBackColor = true;
+            DS.Click += DS_Click;
             // 
             // button3
             // 
-            button3.Location = new Point(600, 0);
+            button3.Location = new Point(614, 0);
             button3.Name = "button3";
             button3.Size = new Size(150, 68);
             button3.TabIndex = 5;
@@ -132,7 +166,7 @@
             // 
             // button4
             // 
-            button4.Location = new Point(469, 0);
+            button4.Location = new Point(479, 0);
             button4.Name = "button4";
             button4.Size = new Size(139, 68);
             button4.TabIndex = 6;
@@ -174,6 +208,7 @@
             // tabControl_main
             // 
             tabControl_main.Alignment = TabAlignment.Bottom;
+            tabControl_main.Controls.Add(tabPage7);
             tabControl_main.Controls.Add(tabPage1);
             tabControl_main.Controls.Add(tabPage2);
             tabControl_main.Controls.Add(tabPage3);
@@ -188,9 +223,29 @@
             tabControl_main.Size = new Size(1435, 738);
             tabControl_main.TabIndex = 4;
             // 
+            // tabPage7
+            // 
+            tabPage7.Controls.Add(axWindowsMediaPlayer1);
+            tabPage7.Location = new Point(4, 4);
+            tabPage7.Name = "tabPage7";
+            tabPage7.Size = new Size(1427, 705);
+            tabPage7.TabIndex = 6;
+            tabPage7.Text = "1";
+            tabPage7.UseVisualStyleBackColor = true;
+            tabPage7.Click += tabPage7_Click;
+            // 
+            // axWindowsMediaPlayer1
+            // 
+            axWindowsMediaPlayer1.Enabled = true;
+            axWindowsMediaPlayer1.Location = new Point(63, 3);
+            axWindowsMediaPlayer1.Name = "axWindowsMediaPlayer1";
+            axWindowsMediaPlayer1.OcxState = (AxHost.State)resources.GetObject("axWindowsMediaPlayer1.OcxState");
+            axWindowsMediaPlayer1.Size = new Size(1252, 706);
+            axWindowsMediaPlayer1.TabIndex = 1;
+            // 
             // tabPage1
             // 
-            tabPage1.Controls.Add(checkBox1);
+            tabPage1.Controls.Add(pictureBox3);
             tabPage1.Controls.Add(button2);
             tabPage1.Controls.Add(richTextBox2);
             tabPage1.Controls.Add(label1);
@@ -203,22 +258,21 @@
             tabPage1.Padding = new Padding(3);
             tabPage1.Size = new Size(1427, 705);
             tabPage1.TabIndex = 0;
-            tabPage1.Text = "1";
+            tabPage1.Text = "2";
             tabPage1.UseVisualStyleBackColor = true;
             // 
-            // checkBox1
+            // pictureBox3
             // 
-            checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(873, 43);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(109, 24);
-            checkBox1.TabIndex = 8;
-            checkBox1.Text = "checkBox1";
-            checkBox1.UseVisualStyleBackColor = true;
+            pictureBox3.Location = new Point(1006, 16);
+            pictureBox3.Name = "pictureBox3";
+            pictureBox3.Size = new Size(355, 201);
+            pictureBox3.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox3.TabIndex = 8;
+            pictureBox3.TabStop = false;
             // 
             // button2
             // 
-            button2.Location = new Point(1094, 213);
+            button2.Location = new Point(1099, 294);
             button2.Name = "button2";
             button2.Size = new Size(132, 29);
             button2.TabIndex = 7;
@@ -228,7 +282,7 @@
             // 
             // richTextBox2
             // 
-            richTextBox2.Location = new Point(424, 266);
+            richTextBox2.Location = new Point(424, 348);
             richTextBox2.Name = "richTextBox2";
             richTextBox2.Size = new Size(856, 287);
             richTextBox2.TabIndex = 6;
@@ -246,7 +300,7 @@
             // 
             // richTextBox1
             // 
-            richTextBox1.Location = new Point(575, 23);
+            richTextBox1.Location = new Point(575, 89);
             richTextBox1.Name = "richTextBox1";
             richTextBox1.Size = new Size(246, 216);
             richTextBox1.TabIndex = 4;
@@ -254,7 +308,7 @@
             // 
             // pictureBoxPlayer
             // 
-            pictureBoxPlayer.Location = new Point(424, 21);
+            pictureBoxPlayer.Location = new Point(424, 89);
             pictureBoxPlayer.Name = "pictureBoxPlayer";
             pictureBoxPlayer.Size = new Size(145, 176);
             pictureBoxPlayer.SizeMode = PictureBoxSizeMode.Zoom;
@@ -263,7 +317,7 @@
             // 
             // button1
             // 
-            button1.Location = new Point(961, 213);
+            button1.Location = new Point(925, 294);
             button1.Name = "button1";
             button1.Size = new Size(118, 29);
             button1.TabIndex = 2;
@@ -296,7 +350,7 @@
             tabPage2.Padding = new Padding(3);
             tabPage2.Size = new Size(1427, 705);
             tabPage2.TabIndex = 1;
-            tabPage2.Text = "2";
+            tabPage2.Text = "3";
             tabPage2.UseVisualStyleBackColor = true;
             // 
             // label3
@@ -354,14 +408,66 @@
             // 
             // tabPage3
             // 
+            tabPage3.Controls.Add(label5);
+            tabPage3.Controls.Add(button10);
+            tabPage3.Controls.Add(checkedListBox2);
+            tabPage3.Controls.Add(checkedListBox1);
+            tabPage3.Controls.Add(button9);
             tabPage3.Controls.Add(chart1);
             tabPage3.Controls.Add(dataGridView_player_inf);
             tabPage3.Location = new Point(4, 4);
             tabPage3.Name = "tabPage3";
             tabPage3.Size = new Size(1427, 705);
             tabPage3.TabIndex = 2;
-            tabPage3.Text = "3";
+            tabPage3.Text = "4";
             tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Font = new Font("Microsoft YaHei UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 134);
+            label5.Location = new Point(49, 20);
+            label5.Name = "label5";
+            label5.Size = new Size(83, 31);
+            label5.TabIndex = 9;
+            label5.Text = "label5";
+            // 
+            // button10
+            // 
+            button10.Location = new Point(1243, 378);
+            button10.Name = "button10";
+            button10.Size = new Size(60, 29);
+            button10.TabIndex = 8;
+            button10.Text = "对比";
+            button10.UseVisualStyleBackColor = true;
+            button10.Click += button10_Click;
+            // 
+            // checkedListBox2
+            // 
+            checkedListBox2.FormattingEnabled = true;
+            checkedListBox2.Location = new Point(1060, 366);
+            checkedListBox2.Name = "checkedListBox2";
+            checkedListBox2.Size = new Size(158, 268);
+            checkedListBox2.TabIndex = 7;
+            // 
+            // checkedListBox1
+            // 
+            checkedListBox1.FormattingEnabled = true;
+            checkedListBox1.Items.AddRange(new object[] { "得分", "命中率", "时间", "三分命中率", "罚球命中率", "篮板", "助攻", "抢断", "盖帽", "失误", "犯规" });
+            checkedListBox1.Location = new Point(29, 72);
+            checkedListBox1.Name = "checkedListBox1";
+            checkedListBox1.Size = new Size(128, 246);
+            checkedListBox1.TabIndex = 6;
+            // 
+            // button9
+            // 
+            button9.Location = new Point(182, 151);
+            button9.Name = "button9";
+            button9.Size = new Size(94, 29);
+            button9.TabIndex = 5;
+            button9.Text = "确定";
+            button9.UseVisualStyleBackColor = true;
+            button9.Click += button9_Click;
             // 
             // chart1
             // 
@@ -375,7 +481,7 @@
             series1.Legend = "Legend1";
             series1.Name = "Series1";
             chart1.Series.Add(series1);
-            chart1.Size = new Size(663, 308);
+            chart1.Size = new Size(1122, 308);
             chart1.TabIndex = 3;
             chart1.Text = "chart1";
             chart1.Click += chart2_Click;
@@ -383,6 +489,7 @@
             // dataGridView_player_inf
             // 
             dataGridView_player_inf.AllowUserToOrderColumns = true;
+            dataGridView_player_inf.BackgroundColor = Color.IndianRed;
             dataGridView_player_inf.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView_player_inf.Location = new Point(6, 404);
             dataGridView_player_inf.Name = "dataGridView_player_inf";
@@ -407,7 +514,7 @@
             tabPage4.Name = "tabPage4";
             tabPage4.Size = new Size(1427, 705);
             tabPage4.TabIndex = 3;
-            tabPage4.Text = "4";
+            tabPage4.Text = "5";
             tabPage4.UseVisualStyleBackColor = true;
             // 
             // button8
@@ -422,11 +529,12 @@
             // 
             // dataGridView4
             // 
+            dataGridView4.BackgroundColor = SystemColors.ActiveCaption;
             dataGridView4.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView4.Location = new Point(965, 133);
             dataGridView4.Name = "dataGridView4";
             dataGridView4.RowHeadersWidth = 51;
-            dataGridView4.Size = new Size(232, 532);
+            dataGridView4.Size = new Size(257, 532);
             dataGridView4.TabIndex = 11;
             // 
             // comboBox1
@@ -441,6 +549,7 @@
             // 
             // dataGridView3
             // 
+            dataGridView3.BackgroundColor = SystemColors.ActiveCaption;
             dataGridView3.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView3.Location = new Point(371, 156);
             dataGridView3.Name = "dataGridView3";
@@ -450,17 +559,19 @@
             // 
             // dataGridView2
             // 
+            dataGridView2.BackgroundColor = SystemColors.ActiveCaption;
             dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView2.Location = new Point(676, 77);
             dataGridView2.Name = "dataGridView2";
             dataGridView2.RowHeadersWidth = 51;
-            dataGridView2.Size = new Size(223, 532);
+            dataGridView2.Size = new Size(236, 532);
             dataGridView2.TabIndex = 8;
             // 
             // dataGridView1
             // 
+            dataGridView1.BackgroundColor = SystemColors.ActiveCaption;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(118, 60);
+            dataGridView1.Location = new Point(98, 60);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
             dataGridView1.Size = new Size(247, 532);
@@ -478,7 +589,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(741, 54);
+            label7.Location = new Point(765, 54);
             label7.Name = "label7";
             label7.Size = new Size(39, 20);
             label7.TabIndex = 5;
@@ -515,13 +626,34 @@
             // 
             // tabPage5
             // 
+            tabPage5.Controls.Add(button11);
+            tabPage5.Controls.Add(comboBox2);
             tabPage5.Controls.Add(dataGridView5);
             tabPage5.Location = new Point(4, 4);
             tabPage5.Name = "tabPage5";
             tabPage5.Size = new Size(1427, 705);
             tabPage5.TabIndex = 4;
-            tabPage5.Text = "5";
+            tabPage5.Text = "6";
             tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // button11
+            // 
+            button11.Location = new Point(322, 78);
+            button11.Name = "button11";
+            button11.Size = new Size(58, 29);
+            button11.TabIndex = 2;
+            button11.Text = "查看此队";
+            button11.UseVisualStyleBackColor = true;
+            button11.Click += button11_Click;
+            // 
+            // comboBox2
+            // 
+            comboBox2.FormattingEnabled = true;
+            comboBox2.Location = new Point(165, 78);
+            comboBox2.Name = "comboBox2";
+            comboBox2.Size = new Size(151, 28);
+            comboBox2.TabIndex = 1;
+            comboBox2.SelectedIndexChanged += comboBox2_SelectedIndexChanged;
             // 
             // dataGridView5
             // 
@@ -535,6 +667,7 @@
             // 
             // tabPage6
             // 
+            tabPage6.Controls.Add(comboBox3);
             tabPage6.Controls.Add(send);
             tabPage6.Controls.Add(result_box);
             tabPage6.Controls.Add(question_box);
@@ -543,8 +676,19 @@
             tabPage6.Name = "tabPage6";
             tabPage6.Size = new Size(1427, 705);
             tabPage6.TabIndex = 5;
-            tabPage6.Text = "6";
+            tabPage6.Text = "7";
             tabPage6.UseVisualStyleBackColor = true;
+            // 
+            // comboBox3
+            // 
+            comboBox3.FormattingEnabled = true;
+            comboBox3.Items.AddRange(new object[] { "今天的NBA比赛有哪些？", "本周的NBA赛程是什么？", "昨天NBA的比赛结果是什么？", "[   ]下一场比赛是什么时候？", "NBA季后赛什么时候开始？", "目前NBA排名前五的球队是哪些？", "[   ]本赛季的战绩如何？", "[   ]本赛季的场均数据是多少？", "[   ]的当家球星是谁？", "今年NBA的MVP热门人选是谁？", "NBA历史得分榜前五是谁？", "本赛季三分球命中率最高的球员是谁？", "[   ]的单场最高得分是多少？", "NBA单场得分记录是多少？", "本赛季最佳新秀是谁？", "最近NBA有什么重大交易？", "[   ]最近受伤了吗？何时复出？   ", "今年NBA全明星赛在哪里举行？", "NBA最新一届的总冠军是谁？", "有哪些球员入选了本赛季的全明星？", "NBA比赛一节多长时间？", "NBA季后赛的赛制是怎样的？", "NBA历史上夺冠次数最多的球队是哪支？", "NBA和CBA有什么区别？", "什么是“工资帽”？", "哪里可以看NBA直播？", "NBA比赛的回放在哪里能看？", "明天的NBA比赛有电视转播吗？" });
+            comboBox3.Location = new Point(173, 510);
+            comboBox3.Name = "comboBox3";
+            comboBox3.Size = new Size(233, 28);
+            comboBox3.TabIndex = 4;
+            comboBox3.Text = "常用问题";
+            comboBox3.SelectedIndexChanged += comboBox3_SelectedIndexChanged;
             // 
             // send
             // 
@@ -574,6 +718,7 @@
             question_box.Size = new Size(621, 40);
             question_box.TabIndex = 1;
             question_box.TextChanged += question_box_TextChanged;
+            question_box.KeyDown += question_box_KeyDown;
             // 
             // label2
             // 
@@ -585,15 +730,17 @@
             label2.TabIndex = 0;
             label2.Text = "DeepSeek";
             // 
-            // DS
+            // pictureBox2
             // 
-            DS.Location = new Point(745, -2);
-            DS.Name = "DS";
-            DS.Size = new Size(131, 68);
-            DS.TabIndex = 5;
-            DS.Text = "DeepSeek";
-            DS.UseVisualStyleBackColor = true;
-            DS.Click += DS_Click;
+            pictureBox2.BackColor = SystemColors.Control;
+            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
+            pictureBox2.Location = new Point(14, 8);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(70, 62);
+            pictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox2.TabIndex = 0;
+            pictureBox2.TabStop = false;
+            pictureBox2.Click += pictureBox2_Click;
             // 
             // frm_A
             // 
@@ -601,9 +748,8 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             ClientSize = new Size(1430, 810);
-            Controls.Add(DS);
+            Controls.Add(pictureBox2);
             Controls.Add(panel1);
-            Controls.Add(search_btn);
             Controls.Add(tabControl_main);
             Name = "frm_A";
             Text = "Form1";
@@ -611,8 +757,11 @@
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             tabControl_main.ResumeLayout(false);
+            tabPage7.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)axWindowsMediaPlayer1).EndInit();
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBoxPlayer).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridViewPlayers).EndInit();
             tabPage2.ResumeLayout(false);
@@ -620,6 +769,7 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ((System.ComponentModel.ISupportInitialize)team_dataGridView).EndInit();
             tabPage3.ResumeLayout(false);
+            tabPage3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)chart1).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView_player_inf).EndInit();
             tabPage4.ResumeLayout(false);
@@ -632,11 +782,11 @@
             ((System.ComponentModel.ISupportInitialize)dataGridView5).EndInit();
             tabPage6.ResumeLayout(false);
             tabPage6.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
-        private Button search_btn;
         private Panel panel1;
         private Button button3;
         private Button button4;
@@ -663,7 +813,6 @@
         private DataGridView dataGridView_player_inf;
         private RichTextBox richTextBox2;
         private Button button2;
-        private CheckBox checkBox1;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
         private DataGridView team_dataGridView;
         private RichTextBox richTextBox4;
@@ -683,5 +832,18 @@
         private DataGridView dataGridView4;
         private Button button8;
         private DataGridView dataGridView5;
+        private Button button9;
+        private CheckedListBox checkedListBox1;
+        private Button button10;
+        private CheckedListBox checkedListBox2;
+        private Label label5;
+        private ComboBox comboBox2;
+        private Button button11;
+        private TabPage tabPage7;
+        private PictureBox pictureBox2;
+        private System.Windows.Forms.Timer timer1;
+        private AxWMPLib.AxWindowsMediaPlayer axWindowsMediaPlayer1;
+        private PictureBox pictureBox3;
+        private ComboBox comboBox3;
     }
 }
